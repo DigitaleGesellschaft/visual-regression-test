@@ -7,6 +7,7 @@ import com.applitools.eyes.TestResultsSummary;
 import com.applitools.eyes.selenium.ClassicRunner;
 import com.applitools.eyes.selenium.Configuration;
 import com.applitools.eyes.selenium.Eyes;
+import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterAll;
@@ -15,10 +16,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.w3c.dom.NodeList;
 
+import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
@@ -32,6 +35,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -47,10 +51,32 @@ class DigigesWebsiteTest {
     startTest("Layout");
 
     driver.get(getWebRoot());
-    eyes.check(Target.window()
-            .fully()
+    eyes.check(fullWindow()
             .withName("homepage"));
   }
+
+  @Test
+  void forms() throws MalformedURLException {
+    startTest("Forms");
+
+    var contactPageUrl = new URL(getWebRoot() + "uber-uns/kontakt/");
+    var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha);
+
+    driver.get(contactPageUrl.toString());
+    eyes.check(contactPageSettings.withName("Kontakt - Initial"));
+
+    $(".wpcf7-form .wpcf7-submit").click();
+
+    eyes.check(contactPageSettings.withName("Kontakt - Submit Invalid"));
+
+    $(".wpcf7-form [name=contact-name]").sendKeys("testname");
+    $(".wpcf7-form [name=contact-email]").sendKeys("test@000.com");
+    $(".wpcf7-form [name=contact-message]").sendKeys("test message");
+    $(".wpcf7-form .wpcf7-submit").click();
+
+    eyes.check(contactPageSettings.withName("Kontakt - Submit Semi Valid"));
+  }
+
 
   @Test
   void pagesTest() throws IOException, InterruptedException {
@@ -63,19 +89,17 @@ class DigigesWebsiteTest {
     startTest("Pages");
 
     driver.get(getWebRoot());
-    eyes.check(Target.window()
-            .fully()
-            .ignore(By.cssSelector("body > footer"))
+    eyes.check(chain(fullWindow(), this::ignoreFooter)
             .ignore(By.cssSelector("main.main"))
             .withName("homepage"));
+
+    urls.add(0, new URL(getWebRoot() + "category/demokratie/"));
+    urls.add(0, new URL(getWebRoot() + "tag/datenschutz/"));
 
     for (var url : urls) {
       System.out.println(String.format("checking %s", url));
       driver.get(url.toString());
-      eyes.check(Target.window()
-              .fully()
-              .ignore(By.cssSelector("body > footer"))
-              .ignore(By.cssSelector(".random-capital-quiz"))
+      eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha)
               .withName(url.getPath()));
     }
   }
@@ -109,6 +133,32 @@ class DigigesWebsiteTest {
 
   private void startTest(String testname) {
     driver = eyes.open(createChromeDriver(), System.getenv("APP_NAME"), testname, viewportSize);
+  }
+
+  private WebElement $(String css) {
+    return driver.findElement(By.cssSelector(css));
+  }
+
+  @Nonnull
+  private SeleniumCheckSettings chain(SeleniumCheckSettings existing, Function<SeleniumCheckSettings, SeleniumCheckSettings>... nexts) {
+    var end = existing;
+    for (var next : nexts) {
+      end = next.apply(existing);
+    }
+    return end;
+  }
+
+  private SeleniumCheckSettings ignoreCaptcha(SeleniumCheckSettings existing) {
+    return existing.ignore(By.cssSelector(".random-capital-quiz"));
+  }
+
+  private SeleniumCheckSettings ignoreFooter(SeleniumCheckSettings existing) {
+    return existing.ignore(By.cssSelector("body > footer"));
+  }
+
+  private SeleniumCheckSettings fullWindow() {
+    return Target.window()
+            .fully();
   }
 
   private static WebDriver createChromeDriver() {
