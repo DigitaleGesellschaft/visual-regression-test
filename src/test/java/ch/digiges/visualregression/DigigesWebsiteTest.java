@@ -77,7 +77,6 @@ class DigigesWebsiteTest {
     eyes.check(contactPageSettings.withName("Kontakt - Submit Semi Valid"));
   }
 
-
   @Test
   void pagesTest() throws IOException, InterruptedException {
     var siteMapUrl = getWebRoot() + "sitemaps/page-sitemap1.xml";
@@ -97,7 +96,7 @@ class DigigesWebsiteTest {
     urls.add(0, new URL(getWebRoot() + "tag/datenschutz/"));
 
     for (var url : urls) {
-      System.out.println(String.format("checking %s", url));
+      System.out.printf("checking %s%n", url);
       driver.get(url.toString());
       eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha)
               .withName(url.getPath()));
