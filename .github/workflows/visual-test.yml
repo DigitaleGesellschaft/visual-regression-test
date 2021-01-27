@@ -17,7 +17,6 @@ jobs:
 
       - name: Run Selenium Tests
         env:
-          CHROME_VERSION: 81.0.4044.129
           WEB_ROOT: https://www.digitale-gesellschaft.ch/
           APP_NAME: digiges-website
           API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
