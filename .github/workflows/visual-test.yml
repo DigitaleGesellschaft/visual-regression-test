@@ -1,6 +1,9 @@
 name: Visual Regression Test
 
-on: [workflow_dispatch]
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
   test-ui:
