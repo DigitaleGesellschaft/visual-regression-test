@@ -98,7 +98,7 @@ class DigigesWebsiteTest {
     for (var url : urls) {
       System.out.printf("checking %s%n", url);
       driver.get(url.toString());
-      eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha)
+      eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe)
               .withName(url.getPath()));
     }
   }
@@ -153,6 +153,10 @@ class DigigesWebsiteTest {
 
   private SeleniumCheckSettings ignoreFooter(SeleniumCheckSettings existing) {
     return existing.ignore(By.cssSelector("body > footer"));
+  }
+
+  private SeleniumCheckSettings ignoreIframe(SeleniumCheckSettings existing) {
+    return existing.ignore(By.cssSelector("iframe"));
   }
 
   private SeleniumCheckSettings fullWindow() {
