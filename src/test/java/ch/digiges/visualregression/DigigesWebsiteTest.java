@@ -1,6 +1,7 @@
 package ch.digiges.visualregression;
 
 import com.applitools.eyes.BatchInfo;
+import com.applitools.eyes.FileLogger;
 import com.applitools.eyes.MatchLevel;
 import com.applitools.eyes.RectangleSize;
 import com.applitools.eyes.TestResultsSummary;
@@ -11,7 +12,6 @@ import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -19,6 +19,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.slf4j.Logger;
+import org.slf4j.impl.SimpleLoggerFactory;
 import org.w3c.dom.NodeList;
 
 import javax.annotation.Nonnull;
@@ -44,24 +46,54 @@ class DigigesWebsiteTest {
   static WebDriver driver;
   static ClassicRunner runner;
   static RectangleSize viewportSize = new RectangleSize(1024, 1024);
+  static Logger logger = new SimpleLoggerFactory().getLogger(DigigesWebsiteTest.class.getCanonicalName());
 
   @Test
   void layoutTest() {
-    eyes.setMatchLevel(MatchLevel.LAYOUT);
-    startTest("Layout");
+    // TODO
+    //  Verschiedene Sidebars?
+    List<URL> urls = mapToUrls(List.of(
+            ""
+            , "category/demokratie"
+            , "tag/datenschutz"
+            , "dossier"
+            , "dossier/netzpodcast"
+            , "dossier/swiss-lawful-interception-report"
+            , "2022/01/02/np001-netzpodcast-auftakt-erklaerstueck"
+    ));
 
-    driver.get(getWebRoot());
-    eyes.check(fullWindow()
-            .withName("homepage"));
+    var sizes = List.of(
+            viewportSize
+            , new RectangleSize(640, 768)
+            , new RectangleSize(375, 768)
+            , new RectangleSize(810, 768)
+    );
+//    eyes.setSaveDebugScreenshots(true);
+//    eyes.setDebugScreenshotsPath("./screenshots");
+
+    eyes.setMatchLevel(MatchLevel.LAYOUT);
+
+    for (var size : sizes) {
+      startTest("Layout - " + size, size);
+
+      for (var url : urls) {
+        logger.info("checking {}", url.getPath());
+        driver.get(url.toString());
+        eyes.check(fullWindow().withName(url.getPath() + " - " + size));
+      }
+      eyes.closeAsync();
+    }
   }
 
+  // TODO einmal Sidebar prüfen, einmal Footer prüfen, neue Pages prüfen.
   @Test
   void forms() throws MalformedURLException {
     startTest("Forms");
 
     var contactPageUrl = new URL(getWebRoot() + "uber-uns/kontakt/");
-    var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha);
+    var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreSidebar);
 
+    logger.info("checking {}", contactPageUrl.getPath());
     driver.get(contactPageUrl.toString());
     eyes.check(contactPageSettings.withName("Kontakt - Initial"));
 
@@ -75,32 +107,60 @@ class DigigesWebsiteTest {
     $(".wpcf7-form .wpcf7-submit").click();
 
     eyes.check(contactPageSettings.withName("Kontakt - Submit Semi Valid"));
+
+    eyes.closeAsync();
   }
 
   @Test
   void pagesTest() throws IOException, InterruptedException {
-    var siteMapUrl = getWebRoot() + "sitemaps/page-sitemap1.xml";
-    var response = fetchSitemapXml(siteMapUrl);
-    var urls = extractUrls(response);
-
     eyes.setHideScrollbars(true);
     eyes.setMatchLevel(MatchLevel.STRICT);
     startTest("Pages");
 
+    logger.info("checking homepage {}", getWebRoot());
     driver.get(getWebRoot());
     eyes.check(chain(fullWindow(), this::ignoreFooter)
             .ignore(By.cssSelector("main.main"))
             .withName("homepage"));
 
-    urls.add(0, new URL(getWebRoot() + "category/demokratie/"));
-    urls.add(0, new URL(getWebRoot() + "tag/datenschutz/"));
+    var checkAlways = mapToUrls(List.of(
+            "category/demokratie",
+            "tag/datenschutz",
+            "a-propos-de-nous",
+            "anonip",
+            "ueberwachung",
+            "publicwlan",
+            "2022/01/27/sbb-ticketdaten-im-internet-sicherheitsluecke-verantwortungsvoll-melden-und-schliessen", // video
+            "2022/01/13/digitale-gesellschaft-weist-verharmlosende-darstellung-zur-massenueberwachung-des-geheimdienstes-zurueck-kabelaufklaerung-am-bundesverwaltungsgericht", // spenden block
+            "2021/12/15/newsletter-zu-digitale-grundrechte-gesichtserkennung-leistungsschutzrecht-winterkongress-stammtisch-update-dezember-2021", // embedded form
+            "2021/12/05/ich-wuerde-mir-nie-ein-selbstfahrendes-auto-kaufen-deep-technology-podcast", // images, video, block
+            "2021/08/01/transparenzbericht-2021-unserer-dns-server-oeffentliche-dns-resolver" // lists
+    ));
 
-    for (var url : urls) {
-      System.out.printf("checking %s%n", url);
+    logger.info("start always checks");
+    for (var url : checkAlways) {
+      logger.info("checking {}", url);
       driver.get(url.toString());
-      eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe)
+      eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
               .withName(url.getPath()));
     }
+
+    logger.info("start form checks");
+    var siteMapUrl = getWebRoot() + "sitemaps/page-sitemap1.xml";
+    var response = fetchSitemapXml(siteMapUrl);
+    var urls = extractUrls(response);
+    for (var url : urls) {
+      driver.get(url.toString());
+      var found = driver.findElements(By.cssSelector("main.main form")).size() > 0;
+      if (found) {
+        logger.info("checking {}", url);
+        driver.get(url.toString());
+        eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
+                .withName(url.getPath()));
+      }
+    }
+
+    eyes.closeAsync();
   }
 
   @BeforeAll
@@ -108,6 +168,7 @@ class DigigesWebsiteTest {
     WebDriverManager.chromedriver().browserVersion(System.getenv("CHROME_VERSION")).setup();
     runner = new ClassicRunner();
     eyes = new Eyes(runner);
+    eyes.setLogHandler(new FileLogger("logs/applitools.log", true, true));
 
     var config = new Configuration()
             .setApiKey(System.getenv("API_KEY"))
@@ -116,35 +177,50 @@ class DigigesWebsiteTest {
     eyes.setConfiguration(config);
   }
 
-  @AfterEach
-  void closeTest() {
-    eyes.closeAsync();
-  }
-
   @AfterAll
   static void resultSummary() {
     driver.quit();
 
     // false : suppress exception thrown if visual differences
     TestResultsSummary allTestResults = runner.getAllTestResults(false);
-    System.out.println(allTestResults);
+    logger.info(allTestResults.toString());
   }
 
   private void startTest(String testname) {
+    this.startTest(testname, viewportSize);
+  }
+
+  private void startTest(String testname, RectangleSize viewportSize) {
+    logger.info("startTest {} at {}", testname, viewportSize);
     driver = eyes.open(createChromeDriver(), System.getenv("APP_NAME"), testname, viewportSize);
+  }
+
+  private List<URL> mapToUrls(List<String> urlPaths) {
+    return urlPaths.stream().map(path -> {
+      try {
+        return new URL(getWebRoot() + path);
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    }).collect(Collectors.toList());
   }
 
   private WebElement $(String css) {
     return driver.findElement(By.cssSelector(css));
   }
 
+  @SafeVarargs
   @Nonnull
-  private SeleniumCheckSettings chain(SeleniumCheckSettings existing, Function<SeleniumCheckSettings, SeleniumCheckSettings>... nexts) {
+  private SeleniumCheckSettings chain(SeleniumCheckSettings existing, Function<SeleniumCheckSettings, SeleniumCheckSettings>... successors) {
     var end = existing;
-    for (var next : nexts) {
+    for (var next : successors) {
       end = next.apply(existing);
     }
     return end;
+  }
+
+  private SeleniumCheckSettings ignoreSidebar(SeleniumCheckSettings existing) {
+    return existing.ignore(By.cssSelector("aside.sidebar"));
   }
 
   private SeleniumCheckSettings ignoreCaptcha(SeleniumCheckSettings existing) {
