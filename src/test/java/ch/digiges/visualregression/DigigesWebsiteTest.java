@@ -60,6 +60,7 @@ class DigigesWebsiteTest {
             , "dossier/netzpodcast"
             , "dossier/swiss-lawful-interception-report"
             , "2022/01/02/np001-netzpodcast-auftakt-erklaerstueck"
+            , "event/mitgliederversammlung"
     ));
 
     var sizes = List.of(
@@ -134,7 +135,10 @@ class DigigesWebsiteTest {
             "2022/01/13/digitale-gesellschaft-weist-verharmlosende-darstellung-zur-massenueberwachung-des-geheimdienstes-zurueck-kabelaufklaerung-am-bundesverwaltungsgericht", // spenden block
             "2021/12/15/newsletter-zu-digitale-grundrechte-gesichtserkennung-leistungsschutzrecht-winterkongress-stammtisch-update-dezember-2021", // embedded form
             "2021/12/05/ich-wuerde-mir-nie-ein-selbstfahrendes-auto-kaufen-deep-technology-podcast", // images, video, block
-            "2021/08/01/transparenzbericht-2021-unserer-dns-server-oeffentliche-dns-resolver" // lists
+            "2021/08/01/transparenzbericht-2021-unserer-dns-server-oeffentliche-dns-resolver", // lists
+            "vorratsdatenspeicherung", // nested lists
+            "uber-uns/bitwaescherei", // OSM
+            "event/mitgliederversammlung" // event
     ));
 
     logger.info("start always checks");
