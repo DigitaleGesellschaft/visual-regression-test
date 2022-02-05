@@ -80,13 +80,14 @@ class DigigesWebsiteTest {
       for (var url : urls) {
         logger.info("checking {}", url.getPath());
         driver.get(url.toString());
-        eyes.check(fullWindow().withName(url.getPath() + " - " + size));
+        eyes.check(chain(fullWindow(), this::ignorePostSlider).withName(url.getPath() + " - " + size));
       }
       eyes.closeAsync();
     }
   }
 
   // TODO einmal Sidebar prüfen, einmal Footer prüfen, neue Pages prüfen.
+
   @Test
   void forms() throws MalformedURLException {
     startTest("Forms");
@@ -111,7 +112,6 @@ class DigigesWebsiteTest {
 
     eyes.closeAsync();
   }
-
   @Test
   void pagesTest() throws IOException, InterruptedException {
     eyes.setHideScrollbars(true);
@@ -225,6 +225,10 @@ class DigigesWebsiteTest {
 
   private SeleniumCheckSettings ignoreSidebar(SeleniumCheckSettings existing) {
     return existing.ignore(By.cssSelector("aside.sidebar"));
+  }
+
+  private SeleniumCheckSettings ignorePostSlider(SeleniumCheckSettings existing) {
+    return existing.ignore(By.cssSelector(".featured.animated"));
   }
 
   private SeleniumCheckSettings ignoreCaptcha(SeleniumCheckSettings existing) {
