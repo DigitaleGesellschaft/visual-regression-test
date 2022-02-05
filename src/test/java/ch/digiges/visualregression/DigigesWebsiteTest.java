@@ -172,7 +172,7 @@ class DigigesWebsiteTest {
     WebDriverManager.chromedriver().browserVersion(System.getenv("CHROME_VERSION")).setup();
     runner = new ClassicRunner();
     eyes = new Eyes(runner);
-    eyes.setLogHandler(new FileLogger("logs/applitools.log", true, true));
+    eyes.setLogHandler(new FileLogger("logs/applitools.log", true, false));
 
     var config = new Configuration()
             .setApiKey(System.getenv("API_KEY"))
