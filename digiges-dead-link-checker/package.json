@@ -1,0 +1,14 @@
+{
+  "name": "digiges-dead-link-checker",
+  "version": "1.0.0",
+  "description": "Generate a list of dead links by recursively scanning a website.",
+  "main": "check.mjs",
+  "scripts": {
+    "check": "node check.mjs"
+  },
+  "author": "Ueli Kunz <kunz@ideadapt.net>",
+  "license": "MIT",
+  "devDependencies": {
+    "linkinator": "^3.0.3"
+  }
+}

@@ -1,0 +1,34 @@
+name: Dead Link Check
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  dead-link-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v2
+
+      - name: Set up NodeJS
+        uses: actions/setup-nodejs@v2
+        with:
+          node-version: 14
+
+      - name: Install Packages
+        working-directory: digiges-dead-link-checker
+        run: npm install
+
+      - name: Run dead link checker
+        working-directory: digiges-dead-link-checker
+        env:
+          WEB_ROOT: https://www.digitale-gesellschaft.ch
+        run: node check.mjs | tee out.csv
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: link-checker-log
+          path: out.csv
