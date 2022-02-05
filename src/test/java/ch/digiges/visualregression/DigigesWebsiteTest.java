@@ -218,7 +218,7 @@ class DigigesWebsiteTest {
   private SeleniumCheckSettings chain(SeleniumCheckSettings existing, Function<SeleniumCheckSettings, SeleniumCheckSettings>... successors) {
     var end = existing;
     for (var next : successors) {
-      end = next.apply(existing);
+      end = next.apply(end);
     }
     return end;
   }

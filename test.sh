@@ -4,3 +4,5 @@
 env $(grep -v '^#' .env | xargs) mvn -Dtest=DigigesWebsiteTest clean test
 
 find ./screenshots -type f -not -name "*stitched.png" -exec rm -f {} \;
+
+rm -f logs/applitools.log
