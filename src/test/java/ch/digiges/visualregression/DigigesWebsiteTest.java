@@ -66,6 +66,9 @@ class DigigesWebsiteTest {
               , "event/mitgliederversammlung"
       ));
 
+      // TODO try multi platform tests using
+      //  https://applitools.com/docs/api/eyes-sdk/classes-gen/class_eyes/method-eyes-setconfiguration-selenium-java.html and
+      //  https://github.com/applitools/tutorial-selenium-java-ultrafastgrid/blob/master/src/test/java/com/applitools/quickstarts/AppTest.java#L65
       var sizes = List.of(
               viewportSize
               , new RectangleSize(640, 768)
@@ -83,7 +86,7 @@ class DigigesWebsiteTest {
         for (var url : urls) {
           logger.info("checking {}", url.getPath());
           driver.get(url.toString());
-          eyes.check(chain(fullWindow(), this::ignorePostSlider, this::ignoreIframe, this::ignoreCaptcha).withName(url.getPath() + " - " + size));
+          eyes.check(chain(fullWindow(), this::ignorePostSlider, this::ignoreIframe, this::ignoreCaptcha, this::ignoreHeartPulse).withName(url.getPath() + " - " + size));
         }
         eyes.closeAsync();
       }
@@ -93,7 +96,7 @@ class DigigesWebsiteTest {
     }
   }
 
-  // TODO einmal Sidebar prüfen, einmal Footer prüfen, neue Pages prüfen.
+  // TODO einmal Sidebar prüfen, einmal Footer prüfen
 
   @Test
   void forms() throws MalformedURLException {
@@ -101,7 +104,7 @@ class DigigesWebsiteTest {
       startTest("Forms");
 
       var contactPageUrl = new URL(getWebRoot() + "uber-uns/kontakt/");
-      var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreSidebar);
+      var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreSidebar, this::ignoreHeartPulse);
 
       logger.info("checking {}", contactPageUrl.getPath());
       driver.get(contactPageUrl.toString());
@@ -158,7 +161,7 @@ class DigigesWebsiteTest {
       for (var url : checkAlways) {
         logger.info("checking {}", url);
         driver.get(url.toString());
-        eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
+        eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar, this::ignoreHeartPulse)
                 .withName(url.getPath()));
       }
 
@@ -172,7 +175,7 @@ class DigigesWebsiteTest {
         if (found) {
           logger.info("checking {}", url);
           driver.get(url.toString());
-          eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
+          eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar, this::ignoreHeartPulse)
                   .withName(url.getPath()));
         }
       }
@@ -259,6 +262,10 @@ class DigigesWebsiteTest {
 
   private SeleniumCheckSettings ignoreIframe(SeleniumCheckSettings existing) {
     return existing.ignore(By.cssSelector("iframe"));
+  }
+
+  private SeleniumCheckSettings ignoreHeartPulse(SeleniumCheckSettings existing) {
+    return existing.ignore(By.cssSelector("glyphicon-heart pulse"));
   }
 
   private SeleniumCheckSettings fullWindow() {
