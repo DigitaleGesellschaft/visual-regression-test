@@ -80,7 +80,7 @@ class DigigesWebsiteTest {
       for (var url : urls) {
         logger.info("checking {}", url.getPath());
         driver.get(url.toString());
-        eyes.check(chain(fullWindow(), this::ignorePostSlider).withName(url.getPath() + " - " + size));
+        eyes.check(chain(fullWindow(), this::ignorePostSlider, this::ignoreIframe, this::ignoreCaptcha).withName(url.getPath() + " - " + size));
       }
       eyes.closeAsync();
     }
