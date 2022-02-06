@@ -43,7 +43,7 @@
         <dependency>
             <groupId>com.applitools</groupId>
             <artifactId>eyes-selenium-java3</artifactId>
-            <version>3.174.0</version>
+            <version>RELEASE</version>
         </dependency>
         <!-- Required for Java 10+ -->
         <dependency>

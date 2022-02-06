@@ -1,15 +1,17 @@
 package ch.digiges.visualregression;
 
 import com.applitools.eyes.BatchInfo;
+import com.applitools.eyes.EyesRunner;
 import com.applitools.eyes.FileLogger;
 import com.applitools.eyes.MatchLevel;
 import com.applitools.eyes.RectangleSize;
 import com.applitools.eyes.TestResultsSummary;
-import com.applitools.eyes.selenium.ClassicRunner;
 import com.applitools.eyes.selenium.Configuration;
 import com.applitools.eyes.selenium.Eyes;
 import com.applitools.eyes.selenium.fluent.SeleniumCheckSettings;
 import com.applitools.eyes.selenium.fluent.Target;
+import com.applitools.eyes.visualgrid.services.RunnerOptions;
+import com.applitools.eyes.visualgrid.services.VisualGridRunner;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,45 +46,50 @@ import java.util.stream.IntStream;
 class DigigesWebsiteTest {
   static Eyes eyes;
   static WebDriver driver;
-  static ClassicRunner runner;
+  static EyesRunner runner;
   static RectangleSize viewportSize = new RectangleSize(1024, 1024);
   static Logger logger = new SimpleLoggerFactory().getLogger(DigigesWebsiteTest.class.getCanonicalName());
 
   @Test
   void layoutTest() {
-    // TODO
-    //  Verschiedene Sidebars?
-    List<URL> urls = mapToUrls(List.of(
-            ""
-            , "category/demokratie"
-            , "tag/datenschutz"
-            , "dossier"
-            , "dossier/netzpodcast"
-            , "dossier/swiss-lawful-interception-report"
-            , "2022/01/02/np001-netzpodcast-auftakt-erklaerstueck"
-            , "event/mitgliederversammlung"
-    ));
+    try {
+      // TODO
+      //  Verschiedene Sidebars?
+      List<URL> urls = mapToUrls(List.of(
+              ""
+              , "category/demokratie"
+              , "tag/datenschutz"
+              , "dossier"
+              , "dossier/netzpodcast"
+              , "dossier/swiss-lawful-interception-report"
+              , "2022/01/02/np001-netzpodcast-auftakt-erklaerstueck"
+              , "event/mitgliederversammlung"
+      ));
 
-    var sizes = List.of(
-            viewportSize
-            , new RectangleSize(640, 768)
-            , new RectangleSize(375, 768)
-            , new RectangleSize(810, 768)
-    );
+      var sizes = List.of(
+              viewportSize
+              , new RectangleSize(640, 768)
+              , new RectangleSize(375, 768)
+              , new RectangleSize(810, 768)
+      );
 //    eyes.setSaveDebugScreenshots(true);
 //    eyes.setDebugScreenshotsPath("./screenshots");
 
-    eyes.setMatchLevel(MatchLevel.LAYOUT);
+      eyes.setMatchLevel(MatchLevel.LAYOUT);
 
-    for (var size : sizes) {
-      startTest("Layout - " + size, size);
+      for (var size : sizes) {
+        startTest("Layout - " + size, size);
 
-      for (var url : urls) {
-        logger.info("checking {}", url.getPath());
-        driver.get(url.toString());
-        eyes.check(chain(fullWindow(), this::ignorePostSlider, this::ignoreIframe, this::ignoreCaptcha).withName(url.getPath() + " - " + size));
+        for (var url : urls) {
+          logger.info("checking {}", url.getPath());
+          driver.get(url.toString());
+          eyes.check(chain(fullWindow(), this::ignorePostSlider, this::ignoreIframe, this::ignoreCaptcha).withName(url.getPath() + " - " + size));
+        }
+        eyes.closeAsync();
       }
-      eyes.closeAsync();
+
+    } finally {
+      eyes.abortAsync();
     }
   }
 
@@ -90,87 +97,97 @@ class DigigesWebsiteTest {
 
   @Test
   void forms() throws MalformedURLException {
-    startTest("Forms");
+    try {
+      startTest("Forms");
 
-    var contactPageUrl = new URL(getWebRoot() + "uber-uns/kontakt/");
-    var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreSidebar);
+      var contactPageUrl = new URL(getWebRoot() + "uber-uns/kontakt/");
+      var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreSidebar);
 
-    logger.info("checking {}", contactPageUrl.getPath());
-    driver.get(contactPageUrl.toString());
-    eyes.check(contactPageSettings.withName("Kontakt - Initial"));
+      logger.info("checking {}", contactPageUrl.getPath());
+      driver.get(contactPageUrl.toString());
+      eyes.check(contactPageSettings.withName("Kontakt - Initial"));
 
-    $(".wpcf7-form .wpcf7-submit").click();
+      $(".wpcf7-form .wpcf7-submit").click();
 
-    eyes.check(contactPageSettings.withName("Kontakt - Submit Invalid"));
+      eyes.check(contactPageSettings.withName("Kontakt - Submit Invalid"));
 
-    $(".wpcf7-form [name=contact-name]").sendKeys("testname");
-    $(".wpcf7-form [name=contact-email]").sendKeys("test@000.com");
-    $(".wpcf7-form [name=contact-message]").sendKeys("test message");
-    $(".wpcf7-form .wpcf7-submit").click();
+      $(".wpcf7-form [name=contact-name]").sendKeys("testname");
+      $(".wpcf7-form [name=contact-email]").sendKeys("test@000.com");
+      $(".wpcf7-form [name=contact-message]").sendKeys("test message");
+      $(".wpcf7-form .wpcf7-submit").click();
 
-    eyes.check(contactPageSettings.withName("Kontakt - Submit Semi Valid"));
+      eyes.check(contactPageSettings.withName("Kontakt - Submit Semi Valid"));
 
-    eyes.closeAsync();
+      eyes.closeAsync();
+    } finally {
+      eyes.abortAsync();
+    }
   }
+
   @Test
   void pagesTest() throws IOException, InterruptedException {
-    eyes.setHideScrollbars(true);
-    eyes.setMatchLevel(MatchLevel.STRICT);
-    startTest("Pages");
+    try {
+      eyes.setHideScrollbars(true);
+      eyes.setMatchLevel(MatchLevel.STRICT);
+      startTest("Pages");
 
-    logger.info("checking homepage {}", getWebRoot());
-    driver.get(getWebRoot());
-    eyes.check(chain(fullWindow(), this::ignoreFooter)
-            .ignore(By.cssSelector("main.main"))
-            .withName("homepage"));
+      logger.info("checking homepage {}", getWebRoot());
+      driver.get(getWebRoot());
+      eyes.check(chain(fullWindow(), this::ignoreFooter)
+              .ignore(By.cssSelector("main.main"))
+              .withName("homepage"));
 
-    var checkAlways = mapToUrls(List.of(
-            "category/demokratie",
-            "tag/datenschutz",
-            "a-propos-de-nous",
-            "anonip",
-            "ueberwachung",
-            "publicwlan",
-            "2022/01/27/sbb-ticketdaten-im-internet-sicherheitsluecke-verantwortungsvoll-melden-und-schliessen", // video
-            "2022/01/13/digitale-gesellschaft-weist-verharmlosende-darstellung-zur-massenueberwachung-des-geheimdienstes-zurueck-kabelaufklaerung-am-bundesverwaltungsgericht", // spenden block
-            "2021/12/15/newsletter-zu-digitale-grundrechte-gesichtserkennung-leistungsschutzrecht-winterkongress-stammtisch-update-dezember-2021", // embedded form
-            "2021/12/05/ich-wuerde-mir-nie-ein-selbstfahrendes-auto-kaufen-deep-technology-podcast", // images, video, block
-            "2021/08/01/transparenzbericht-2021-unserer-dns-server-oeffentliche-dns-resolver", // lists
-            "vorratsdatenspeicherung", // nested lists
-            "uber-uns/bitwaescherei", // OSM
-            "event/mitgliederversammlung" // event
-    ));
+      var checkAlways = mapToUrls(List.of(
+              "category/demokratie",
+              "tag/datenschutz",
+              "a-propos-de-nous",
+              "anonip",
+              "ueberwachung",
+              "publicwlan",
+              "2022/01/27/sbb-ticketdaten-im-internet-sicherheitsluecke-verantwortungsvoll-melden-und-schliessen", // video
+              "2022/01/13/digitale-gesellschaft-weist-verharmlosende-darstellung-zur-massenueberwachung-des-geheimdienstes-zurueck-kabelaufklaerung-am-bundesverwaltungsgericht", // spenden block
+              "2021/12/15/newsletter-zu-digitale-grundrechte-gesichtserkennung-leistungsschutzrecht-winterkongress-stammtisch-update-dezember-2021", // embedded form
+              "2021/12/05/ich-wuerde-mir-nie-ein-selbstfahrendes-auto-kaufen-deep-technology-podcast", // images, video, block
+              "2021/08/01/transparenzbericht-2021-unserer-dns-server-oeffentliche-dns-resolver", // lists
+              "vorratsdatenspeicherung", // nested lists
+              "uber-uns/bitwaescherei", // OSM
+              "event/mitgliederversammlung" // event
+      ));
 
-    logger.info("start always checks");
-    for (var url : checkAlways) {
-      logger.info("checking {}", url);
-      driver.get(url.toString());
-      eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
-              .withName(url.getPath()));
-    }
-
-    logger.info("start form checks");
-    var siteMapUrl = getWebRoot() + "sitemaps/page-sitemap1.xml";
-    var response = fetchSitemapXml(siteMapUrl);
-    var urls = extractUrls(response);
-    for (var url : urls) {
-      driver.get(url.toString());
-      var found = driver.findElements(By.cssSelector("main.main form")).size() > 0;
-      if (found) {
+      logger.info("start always checks");
+      for (var url : checkAlways) {
         logger.info("checking {}", url);
         driver.get(url.toString());
         eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
                 .withName(url.getPath()));
       }
-    }
 
-    eyes.closeAsync();
+      logger.info("start form checks");
+      var siteMapUrl = getWebRoot() + "sitemaps/page-sitemap1.xml";
+      var response = fetchSitemapXml(siteMapUrl);
+      var urls = extractUrls(response);
+      for (var url : urls) {
+        driver.get(url.toString());
+        var found = driver.findElements(By.cssSelector("main.main form")).size() > 0;
+        if (found) {
+          logger.info("checking {}", url);
+          driver.get(url.toString());
+          eyes.check(chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreIframe, this::ignoreSidebar)
+                  .withName(url.getPath()));
+        }
+      }
+
+      eyes.closeAsync();
+    } finally {
+      eyes.abortAsync();
+    }
   }
 
   @BeforeAll
   static void setupEyes() throws MalformedURLException {
     WebDriverManager.chromedriver().browserVersion(System.getenv("CHROME_VERSION")).setup();
-    runner = new ClassicRunner();
+    runner = new VisualGridRunner(new RunnerOptions().testConcurrency(5));
+
     eyes = new Eyes(runner);
     eyes.setLogHandler(new FileLogger("logs/applitools.log", true, false));
 
@@ -184,6 +201,7 @@ class DigigesWebsiteTest {
   @AfterAll
   static void resultSummary() {
     driver.quit();
+    eyes.abortIfNotClosed();
 
     // false : suppress exception thrown if visual differences
     TestResultsSummary allTestResults = runner.getAllTestResults(false);
