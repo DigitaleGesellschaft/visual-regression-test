@@ -2,7 +2,7 @@ name: Dead Link Check
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 3 * * 0' # every sunday 3am
   workflow_dispatch:
 
 jobs:
