@@ -166,7 +166,7 @@ class DigigesWebsiteTest {
       }
 
       logger.info("start form checks");
-      var siteMapUrl = webRoot() + "sitemaps/page-sitemap1.xml";
+      var siteMapUrl = webRoot() + "page-sitemap1.xml";
       var response = httpGet(siteMapUrl);
       var urls = extractUrls(response);
       for (var url : urls) {
