@@ -103,7 +103,7 @@ class DigigesWebsiteTest {
     try {
       startTest("Forms");
 
-      var contactPageUrl = new URL(getWebRoot() + "uber-uns/kontakt/");
+      var contactPageUrl = new URL(webRoot() + "uber-uns/kontakt/");
       var contactPageSettings = chain(fullWindow(), this::ignoreFooter, this::ignoreCaptcha, this::ignoreSidebar, this::ignoreHeartPulse);
 
       logger.info("checking {}", contactPageUrl.getPath());
@@ -134,8 +134,8 @@ class DigigesWebsiteTest {
       eyes.setMatchLevel(MatchLevel.STRICT);
       startTest("Pages");
 
-      logger.info("checking homepage {}", getWebRoot());
-      driver.get(getWebRoot());
+      logger.info("checking homepage {}", webRoot());
+      driver.get(webRoot());
       eyes.check(chain(fullWindow(), this::ignoreFooter)
               .ignore(By.cssSelector("main.main"))
               .withName("homepage"));
@@ -166,8 +166,8 @@ class DigigesWebsiteTest {
       }
 
       logger.info("start form checks");
-      var siteMapUrl = getWebRoot() + "sitemaps/page-sitemap1.xml";
-      var response = fetchSitemapXml(siteMapUrl);
+      var siteMapUrl = webRoot() + "sitemaps/page-sitemap1.xml";
+      var response = httpGet(siteMapUrl);
       var urls = extractUrls(response);
       for (var url : urls) {
         driver.get(url.toString());
@@ -196,7 +196,7 @@ class DigigesWebsiteTest {
 
     var config = new Configuration()
             .setApiKey(System.getenv("API_KEY"))
-            .setBatch(new BatchInfo(new URL(getWebRoot()).getAuthority()));
+            .setBatch(new BatchInfo(new URL(webRoot()).getAuthority()));
 
     eyes.setConfiguration(config);
   }
@@ -223,7 +223,7 @@ class DigigesWebsiteTest {
   private List<URL> mapToUrls(List<String> urlPaths) {
     return urlPaths.stream().map(path -> {
       try {
-        return new URL(getWebRoot() + path);
+        return new URL(webRoot() + path);
       } catch (MalformedURLException e) {
         throw new RuntimeException(e);
       }
@@ -303,10 +303,10 @@ class DigigesWebsiteTest {
     return urls;
   }
 
-  private static HttpResponse<byte[]> fetchSitemapXml(String siteMapUrl) throws IOException, InterruptedException {
+  private static HttpResponse<byte[]> httpGet(String url) throws IOException, InterruptedException {
     HttpClient client = HttpClient.newHttpClient();
     HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(siteMapUrl))
+            .uri(URI.create(url))
             .GET()
             .build();
 
@@ -353,7 +353,7 @@ class DigigesWebsiteTest {
     return factory;
   }
 
-  private static String getWebRoot() {
+  private static String webRoot() {
     return System.getenv("WEB_ROOT");
   }
 }
