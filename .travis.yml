@@ -1,7 +1,0 @@
-language: java
-env:
-  global:
-    - WEB_ROOT=https://www.digitale-gesellschaft.ch/
-    - APP_NAME=digiges-website
-    - CHROME_VERSION=84.0.4147.30
-    - secure: 0hXv20TimJc1w/jHJRCffCEjgqNlmK4tU7Fc2ZPEXqIxLMnFBMoEaBPYOE3Bbxhi9Se2IEMwN+K3KVSoPvn/l8HYDgieBl0GlvfLXisQQxXVHT9/9HOqybGhWlv2Xr3XaWsx/5c3sDYcUtGdXWCjetfYSdmNU0cHjkYcFF3PgjQehyvIyw3JSiDgAFmVWXadh5KdS192qRaHA/DkVQq1Z8YZPtdYexpHQOb6QxmGXa7niatMNtYAAeLlEjujhn/g1+NG3aMK8p4jS6m+5ACVmeNzk5O5lbFT4wKjqPEkMIk/Tq0yCE5rsZnbmRZTrkd1zSQqRQRt6daiMZOs6j5LFBF1k3LVns4tQe3tTeRhEcSwoAMAJujh3pmNFQ5Bf++icwSeYEIf0yFtg1znbgC0mRzIo6lHJDt2HEkQm3nPSp7yZ3NDozALrRI3cxPQrsrBf8s6/tUROwNrmkg1NGo5ymYNKPOCfZKNtb/rJfcLUM1ANdXM2Bfjd4TwmzIH7X6T3kLQ/r8Cvw2DqgKnpkWXuZMwaJ/gObMVBCIkbs6tnOLQ7vJQWOx3w2tUQgMZEZUYqGvIgmqRMztE/3AY7j/bvpL63vIFz1Y2N7tO0wsRIuPQ6f6/B0oYU4/mPotraD2Dkazq+CsT1BCuC1y7qI8AQMfI5XmnWXH5BGD8lvypWB4=
